@@ -1,25 +1,24 @@
 ﻿using System.Drawing;
 using System.Linq;
-using System.Windows.Forms;
 using SpellWork.Database;
 using SpellWork.DBC;
 using SpellWork.Extensions;
 
 namespace SpellWork.Spell
 {
-    class SpellInfo
+    public class SpellInfo
     {
-        private readonly RichTextBox _rtb;
+        private readonly IRichTextBox _rtb;
         private SpellEntry _spell;
 
         private const string _line = "=================================================";
 
-        public SpellInfo(RichTextBox rtb, SpellEntry spell)
+        public SpellInfo(IRichTextBox rtb, SpellEntry spell)
         {
             _rtb = rtb;
             _spell = spell;
 
-            ProcInfo.SpellProc = spell;
+            //ProcInfo.SpellProc = spell;
 
             ViewSpellInfo();
         }

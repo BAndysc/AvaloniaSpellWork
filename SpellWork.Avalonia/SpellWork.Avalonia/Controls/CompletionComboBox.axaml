@@ -1,0 +1,66 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:SpellWork.Avalonia.Controls">
+    <Design.PreviewWith>
+        <controls:CompletionComboBox />
+    </Design.PreviewWith>
+
+    <Style Selector="controls|CompletionComboBox.NoPadding ListBoxItem">
+        <Setter Property="Padding" Value="0,0,0,0" />
+    </Style>
+    
+    <Style Selector="controls|CompletionComboBox.NoPadding ListBoxItem > ContentPresenter">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+    
+    <Style Selector="controls|CompletionComboBox CheckBox">
+        <Setter Property="ClickMode" Value="Press" />
+    </Style>
+    
+    <Style Selector="controls|CompletionComboBox">
+        <Setter Property="MinHeight" Value="26.5" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid Name="PART_LayoutRoot">
+                    <ToggleButton Content="{TemplateBinding SelectedItem}" 
+                                  HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Stretch"
+                                  HorizontalContentAlignment="Left"
+                                  Name="PART_Button"
+                                  IsChecked="{TemplateBinding IsDropDownOpen, Mode=TwoWay}" ContentTemplate="{TemplateBinding ButtonItemTemplate}"></ToggleButton>
+                    <Popup Name="PART_Popup"
+                           IsOpen="{TemplateBinding IsDropDownOpen, Mode=TwoWay}"
+                           WindowManagerAddShadowHint="True"
+                           MinWidth="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
+                           IsLightDismissEnabled="{TemplateBinding IsLightDismissEnabled}"
+                           MaxWidth="700"
+                           MaxHeight="600"
+                           PlacementConstraintAdjustment="SlideY,SlideX"
+                           PlacementMode="BottomEdgeAlignedRight"
+                           PlacementGravity="Bottom"
+                           PlacementTarget="PART_Button">
+                        <Border Name="PART_SuggestionsContainer"
+                                Background="{DynamicResource ComboBoxDropDownBackground}"
+                                BorderBrush="{DynamicResource ComboBoxDropDownBorderBrush}"
+                                BorderThickness="{DynamicResource ComboBoxDropdownBorderThickness}"
+                                Padding="{DynamicResource ComboBoxDropdownBorderPadding}"
+                                CornerRadius="{DynamicResource OverlayCornerRadius}">
+                            <DockPanel>
+                                <TextBox Name="PART_SearchTextBox" Watermark="{TemplateBinding Watermark}" Text="{TemplateBinding SearchText, Mode=TwoWay}" DockPanel.Dock="Top" />
+                                <ListBox Name="PART_SelectingItemsControl"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         ItemTemplate="{TemplateBinding ItemTemplate}"
+                                         Margin="{DynamicResource AutoCompleteListPadding}" />
+                            </DockPanel>
+                        </Border>
+                    </Popup>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="controls|CompletionComboBox:hideButton ToggleButton">
+        <Setter Property="Opacity" Value="0" />
+    </Style>  
+</Styles>

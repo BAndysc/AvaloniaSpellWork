@@ -1,9 +1,4 @@
-﻿using System;
-using System.Text;
-using System.IO;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using SpellWork.Extensions;
+﻿using System.Runtime.InteropServices;
 
 namespace SpellWork.DBC
 {
@@ -11,45 +6,49 @@ namespace SpellWork.DBC
     {
         /// <exception cref="Exception"><c>Exception</c>.</exception>
         /// <exception cref="FileNotFoundException"><c>FileNotFoundException</c>.</exception>
-        public static Dictionary<uint, T> ReadDBC<T>(Dictionary<uint, string> strDict) where T : struct
+        public static async Task<Dictionary<uint, T>> ReadDBC<T>(Dictionary<uint, string> strDict) where T : unmanaged
         {
             var dict = new Dictionary<uint, T>();
             var fileName = Path.Combine(DBC.DbcPath, typeof(T).Name + ".dbc").Replace("Entry", String.Empty);
 
-            using (var reader = new BinaryReader(new FileStream(fileName, FileMode.Open, FileAccess.Read), Encoding.UTF8))
+            var bytes = await Globals.FileSystem.ReadFile(fileName);
+            
+            var reader = new MemoryBinaryReader(bytes);
+            if (!Globals.FileSystem.Exists(fileName))
+                throw new FileNotFoundException();
+            // read dbc header
+            var header = reader.ReadStruct<DbcHeader>();
+            var size = Marshal.SizeOf<T>();
+
+            if (!header.IsDBC)
+                throw new Exception(fileName + " is not DBC files!");
+
+            if (header.RecordSize != size)
+                throw new Exception(string.Format("Size of row in DBC file ({0}) != size of DBC struct ({1}) in DBC: {2}", header.RecordSize, size, fileName));
+
+            dict.EnsureCapacity(header.RecordsCount);
+            
+            // read dbc data
+            for (var r = 0; r < header.RecordsCount; ++r)
             {
-                if (!File.Exists(fileName))
-                    throw new FileNotFoundException();
-                // read dbc header
-                var header = reader.ReadStruct<DbcHeader>();
-                var size = Marshal.SizeOf(typeof(T));
+                var key = reader.ReadUInt32();
+                reader.Position -= 4;
 
-                if (!header.IsDBC)
-                    throw new Exception(fileName + " is not DBC files!");
+                var entry = reader.ReadStruct<T>();
 
-                if (header.RecordSize != size)
-                    throw new Exception(string.Format("Size of row in DBC file ({0}) != size of DBC struct ({1}) in DBC: {2}", header.RecordSize, size, fileName));
+                dict.Add(key, entry);
+            }
 
-                // read dbc data
-                for (var r = 0; r < header.RecordsCount; ++r)
+            // read dbc strings
+            if (strDict != null)
+            {
+                strDict.EnsureCapacity(header.StringTableSize);
+                var startStringPosition = header.StartStringPosition;
+                while (reader.Position != reader.Length)
                 {
-                    var key = reader.ReadUInt32();
-                    reader.BaseStream.Position -= 4;
-
-                    var entry = reader.ReadStruct<T>();
-
-                    dict.Add(key, entry);
-                }
-
-                // read dbc strings
-                if (strDict != null)
-                {
-                    while (reader.BaseStream.Position != reader.BaseStream.Length)
-                    {
-                        var offset = (uint)(reader.BaseStream.Position - header.StartStringPosition);
-                        var str    = reader.ReadCString();
-                        strDict.Add(offset, str);
-                    }
+                    var offset = (uint)(reader.Position - startStringPosition);
+                    var str    = reader.ReadCString();
+                    strDict.Add(offset, str);
                 }
             }
             return dict;

@@ -1,28 +1,63 @@
 ﻿using System;
 using SpellWork.DBC;
 using SpellWork.Spell;
+using SpellWork.ViewModels;
 
 namespace SpellWork
 {
-    class Loader
+    public class Loader
     {
         public Loader()
         {
-            DBC.DBC.AreaGroup = DBCReader.ReadDBC<AreaGroupEntry>(null);
-            DBC.DBC.AreaTable = DBCReader.ReadDBC<AreaTableEntry>(DBC.DBC.AreaStrings);
-            DBC.DBC.OverrideSpellData = DBCReader.ReadDBC<OverrideSpellDataEntry>(null);
-            DBC.DBC.ScreenEffect = DBCReader.ReadDBC<ScreenEffectEntry>(DBC.DBC.ScreenEffectStrings);
-            DBC.DBC.SkillLine = DBCReader.ReadDBC<SkillLineEntry>(DBC.DBC.SkillLineStrings);
-            DBC.DBC.SkillLineAbility = DBCReader.ReadDBC<SkillLineAbilityEntry>(null);
-            DBC.DBC.Spell = DBCReader.ReadDBC<SpellEntry>(DBC.DBC.SpellStrings);
-            DBC.DBC.SpellCastTimes = DBCReader.ReadDBC<SpellCastTimesEntry>(null);
-            DBC.DBC.SpellDifficulty = DBCReader.ReadDBC<SpellDifficultyEntry>(null);
-            DBC.DBC.SpellDuration = DBCReader.ReadDBC<SpellDurationEntry>(null);
-            DBC.DBC.SpellRadius = DBCReader.ReadDBC<SpellRadiusEntry>(null);
-            DBC.DBC.SpellRange = DBCReader.ReadDBC<SpellRangeEntry>(DBC.DBC.SpellRangeStrings);
-            DBC.DBC.SpellMissile = DBCReader.ReadDBC<SpellMissileEntry>(null);
-            DBC.DBC.SpellMissileMotion = DBCReader.ReadDBC<SpellMissileMotionEntry>(DBC.DBC.SpellMissileMotionStrings);
-            DBC.DBC.SpellVisual = DBCReader.ReadDBC<SpellVisualEntry>(null);
+            
+        }
+
+        public async Task AsyncDataLoad(ITaskProgress progress)
+        {
+            progress.Report(nameof(DBC.DBC.AreaGroup));
+            DBC.DBC.AreaGroup = await DBCReader.ReadDBC<AreaGroupEntry>(null);
+            
+            progress.Report(nameof(DBC.DBC.AreaTable));
+            DBC.DBC.AreaTable = await DBCReader.ReadDBC<AreaTableEntry>(DBC.DBC.AreaStrings);
+            
+            progress.Report(nameof(DBC.DBC.OverrideSpellData));
+            DBC.DBC.OverrideSpellData = await DBCReader.ReadDBC<OverrideSpellDataEntry>(null);
+            
+            progress.Report(nameof(DBC.DBC.ScreenEffect));
+            DBC.DBC.ScreenEffect = await DBCReader.ReadDBC<ScreenEffectEntry>(DBC.DBC.ScreenEffectStrings);
+            
+            progress.Report(nameof(DBC.DBC.SkillLine));
+            DBC.DBC.SkillLine = await DBCReader.ReadDBC<SkillLineEntry>(DBC.DBC.SkillLineStrings);
+            
+            progress.Report(nameof(DBC.DBC.SkillLineAbility));
+            DBC.DBC.SkillLineAbility = await DBCReader.ReadDBC<SkillLineAbilityEntry>(null);
+            
+            progress.Report(nameof(DBC.DBC.Spell));
+            DBC.DBC.Spell = await DBCReader.ReadDBC<SpellEntry>(DBC.DBC.SpellStrings);
+            
+            progress.Report(nameof(DBC.DBC.SpellCastTimes));
+            DBC.DBC.SpellCastTimes = await DBCReader.ReadDBC<SpellCastTimesEntry>(null);
+            
+            progress.Report(nameof(DBC.DBC.SpellDifficulty));
+            DBC.DBC.SpellDifficulty = await DBCReader.ReadDBC<SpellDifficultyEntry>(null);
+            
+            progress.Report(nameof(DBC.DBC.SpellDuration));
+            DBC.DBC.SpellDuration = await DBCReader.ReadDBC<SpellDurationEntry>(null);
+            
+            progress.Report(nameof(DBC.DBC.SpellRadius));
+            DBC.DBC.SpellRadius = await DBCReader.ReadDBC<SpellRadiusEntry>(null);
+            
+            progress.Report(nameof(DBC.DBC.SpellRange));
+            DBC.DBC.SpellRange = await DBCReader.ReadDBC<SpellRangeEntry>(DBC.DBC.SpellRangeStrings);
+            
+            progress.Report(nameof(DBC.DBC.SpellMissile));
+            DBC.DBC.SpellMissile = await DBCReader.ReadDBC<SpellMissileEntry>(null);
+            
+            progress.Report(nameof(DBC.DBC.SpellMissileMotion));
+            DBC.DBC.SpellMissileMotion = await DBCReader.ReadDBC<SpellMissileMotionEntry>(DBC.DBC.SpellMissileMotionStrings);
+            
+            progress.Report(nameof(DBC.DBC.SpellVisual));
+            DBC.DBC.SpellVisual = await DBCReader.ReadDBC<SpellVisualEntry>(null);
 
             DBC.DBC.Locale = DetectedLocale;
         }

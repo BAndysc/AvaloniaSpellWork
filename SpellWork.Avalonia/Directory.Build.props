@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <WarningsAsErrors>nullable</WarningsAsErrors>
+    <AvaloniaVersion>11.0.1</AvaloniaVersion>
+  </PropertyGroup>
+</Project>

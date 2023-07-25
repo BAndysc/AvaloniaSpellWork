@@ -1,0 +1,31 @@
+body {
+    font: 1rem/1.5 sans-serif;
+    background: rgb(38,68,94);
+    background: linear-gradient(180deg, rgba(38,68,94,1) 8%, rgba(212,213,217,1) 8%, rgba(182,189,195,1) 94%, rgba(168,179,187,1) 100%);
+}
+
+/* align center vertically and horizontally */
+main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100vh;
+}
+
+h1 {
+    font-weight: lighter;
+    font-size: 3rem;
+}
+
+a {
+    text-decoration: none;
+}
+
+ul {
+    list-style-type: none;
+}
+
+ul li {
+    margin-bottom: 0.5em;
+}

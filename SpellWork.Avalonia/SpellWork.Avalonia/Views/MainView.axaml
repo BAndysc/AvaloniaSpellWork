@@ -1,0 +1,68 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:SpellWork.Avalonia.Views"
+             xmlns:controls="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+             xmlns:utils="clr-namespace:SpellWork.Avalonia.Utils"
+             xmlns:spell="clr-namespace:SpellWork.Spell;assembly=SpellWork"
+             xmlns:extensions="clr-namespace:SpellWork.Extensions;assembly=SpellWork"
+             xmlns:viewModels="clr-namespace:SpellWork.ViewModels;assembly=SpellWork"
+             xmlns:swControls="clr-namespace:SpellWork.Avalonia.Controls"
+             xmlns:dbc="clr-namespace:SpellWork.DBC;assembly=SpellWork"
+             xmlns:avalonia="clr-namespace:SpellWork.Avalonia"
+             Name="Root"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="SpellWork.Avalonia.Views.MainView"
+             x:DataType="viewModels:MainViewViewModel">
+  <UserControl.Styles>
+    <Style Selector="TextBlock">
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="ComboBox">
+      <Setter Property="HorizontalAlignment" Value="Stretch"></Setter>
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="controls|FAComboBox">
+      <Setter Property="HorizontalAlignment" Value="Stretch"></Setter>
+    </Style>
+  </UserControl.Styles>
+  
+  <DockPanel>
+    <Grid ColumnDefinitions="Auto,*,Auto" DockPanel.Dock="Top" Margin="0,0,5,0">
+      <TabStrip ItemsSource="{CompiledBinding Tabs}" SelectedItem="{CompiledBinding SelectedTab}">
+        <TabStrip.ItemTemplate>
+          <DataTemplate DataType="viewModels:TabViewModel">
+            <TextBlock Text="{CompiledBinding  Header}" />
+          </DataTemplate>
+        </TabStrip.ItemTemplate>
+      </TabStrip>
+      
+      <swControls:CompletionComboBox Grid.Column="2"
+                                     IsVisible="{OnPlatform True, Browser=False}"
+                                     Items="{CompiledBinding AllSpells}"
+                                     SelectedItem="{CompiledBinding SelectedQuickSpellSelect}"
+                                     VerticalAlignment="Center"
+                                     Width="200">
+        <swControls:CompletionComboBox.ButtonItemTemplate>
+          <DataTemplate>
+            <TextBlock Text="Quick go to"/>
+          </DataTemplate>
+        </swControls:CompletionComboBox.ButtonItemTemplate>
+        <swControls:CompletionComboBox.ItemTemplate>
+          <DataTemplate>
+            <DockPanel x:DataType="viewModels:SpellViewModel">
+              <TextBlock Width="50" Text="{CompiledBinding Entry}" FontWeight="Bold" Margin="0,0,5,0"/>
+              <TextBlock Text="{CompiledBinding SpellName}" />
+            </DockPanel>
+          </DataTemplate>
+        </swControls:CompletionComboBox.ItemTemplate>
+      </swControls:CompletionComboBox>
+    </Grid>
+    <ContentControl BorderThickness="0,1,0,0" BorderBrush="#10000000" Content="{CompiledBinding SelectedTab.DataContext}">
+      <ContentControl.DataTemplates>
+        <avalonia:CompileTimeViewLocator />
+      </ContentControl.DataTemplates>
+    </ContentControl>
+  </DockPanel>
+</UserControl>

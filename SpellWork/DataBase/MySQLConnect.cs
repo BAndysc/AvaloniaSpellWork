@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Windows.Forms;
-using MySql.Data.MySqlClient;
+﻿using MySql.Data.MySqlClient;
 using SpellWork.DBC;
 using SpellWork.Extensions;
 using SpellWork.Properties;
+using SpellWork.Services;
 
 namespace SpellWork.Database
 {
@@ -365,7 +363,7 @@ namespace SpellWork.Database
             }
             catch (MySqlException ex)
             {
-                MessageBox.Show(string.Format("Errno {0}{1}{2}", ex.Number, Environment.NewLine, ex.Message));
+                Globals.MessageBoxService.Show("Error", string.Format("Errno {0}{1}{2}", ex.Number, Environment.NewLine, ex.Message));
                 Connected = false;
             }
             catch

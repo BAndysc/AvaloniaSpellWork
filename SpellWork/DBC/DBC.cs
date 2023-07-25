@@ -6,7 +6,7 @@ namespace SpellWork.DBC
     public static class DBC
     {
         public const string Version = "SpellWork 3.3.5a (12340)";
-        public const string DbcPath = @"dbc";
+        public static string DbcPath => OperatingSystem.IsBrowser() || OperatingSystem.IsIOS() ? "" : "dbc";
 
         public const int MaxDbcLocale                 = 16;
         public const int MaxReagentCount              = 8;

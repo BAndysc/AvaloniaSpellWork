@@ -5,6 +5,18 @@ VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpellWork", "SpellWork\SpellWork.csproj", "{49A3559B-529A-4406-824B-F7E2831DE1B2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpellWork.Avalonia", "SpellWork.Avalonia\SpellWork.Avalonia\SpellWork.Avalonia.csproj", "{5AD9033F-A81F-4487-81FA-F2DA85A7C5FC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpellWork.Avalonia.Android", "SpellWork.Avalonia\SpellWork.Avalonia.Android\SpellWork.Avalonia.Android.csproj", "{866D8525-8CDA-41C5-97F7-890A0298C944}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpellWork.Avalonia.Desktop", "SpellWork.Avalonia\SpellWork.Avalonia.Desktop\SpellWork.Avalonia.Desktop.csproj", "{4F9817E5-1429-4048-BA15-FB6B522866C0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpellWork.Avalonia.iOS", "SpellWork.Avalonia\SpellWork.Avalonia.iOS\SpellWork.Avalonia.iOS.csproj", "{DD4CC54D-D485-407F-8674-613CA64A2374}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpellWork.Avalonia.Browser", "SpellWork.Avalonia\SpellWork.Avalonia.Browser\SpellWork.Avalonia.Browser.csproj", "{34465F43-10A7-4143-BF40-214E7953DA79}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpellWork.WinForms", "SpellWork.WinForms\SpellWork.WinForms.csproj", "{B066934C-EFF4-4F65-8DBA-4EFCD65552CD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +27,30 @@ Global
 		{49A3559B-529A-4406-824B-F7E2831DE1B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{49A3559B-529A-4406-824B-F7E2831DE1B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{49A3559B-529A-4406-824B-F7E2831DE1B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5AD9033F-A81F-4487-81FA-F2DA85A7C5FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5AD9033F-A81F-4487-81FA-F2DA85A7C5FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5AD9033F-A81F-4487-81FA-F2DA85A7C5FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5AD9033F-A81F-4487-81FA-F2DA85A7C5FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{866D8525-8CDA-41C5-97F7-890A0298C944}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{866D8525-8CDA-41C5-97F7-890A0298C944}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{866D8525-8CDA-41C5-97F7-890A0298C944}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{866D8525-8CDA-41C5-97F7-890A0298C944}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F9817E5-1429-4048-BA15-FB6B522866C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F9817E5-1429-4048-BA15-FB6B522866C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F9817E5-1429-4048-BA15-FB6B522866C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F9817E5-1429-4048-BA15-FB6B522866C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD4CC54D-D485-407F-8674-613CA64A2374}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD4CC54D-D485-407F-8674-613CA64A2374}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD4CC54D-D485-407F-8674-613CA64A2374}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD4CC54D-D485-407F-8674-613CA64A2374}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34465F43-10A7-4143-BF40-214E7953DA79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34465F43-10A7-4143-BF40-214E7953DA79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34465F43-10A7-4143-BF40-214E7953DA79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34465F43-10A7-4143-BF40-214E7953DA79}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B066934C-EFF4-4F65-8DBA-4EFCD65552CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B066934C-EFF4-4F65-8DBA-4EFCD65552CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B066934C-EFF4-4F65-8DBA-4EFCD65552CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B066934C-EFF4-4F65-8DBA-4EFCD65552CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

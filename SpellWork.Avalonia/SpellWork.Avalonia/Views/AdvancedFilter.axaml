@@ -1,0 +1,14 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:SpellWork.ViewModels;assembly=SpellWork"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="SpellWork.Avalonia.Views.AdvancedFilter"
+             x:DataType="viewModels:AdvancedFilterViewModel">
+  <Grid ColumnDefinitions="*,5,Auto,5,*">
+    <ComboBox SelectedItem="{CompiledBinding Type}" ItemsSource="{CompiledBinding  Types}" Grid.Column="0" Grid.Row="0" />
+    <ComboBox SelectedItem="{CompiledBinding Comparison}" ItemsSource="{CompiledBinding CompareTypes}" Grid.Column="2" Grid.Row="0" />
+    <TextBox Text="{CompiledBinding Value}" Grid.Column="4" Grid.Row="0" />
+  </Grid>
+</UserControl>

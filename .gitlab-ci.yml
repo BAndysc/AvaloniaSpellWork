@@ -1,0 +1,15 @@
+image: mcr.microsoft.com/dotnet/sdk:latest
+before_script:
+  - apt-get update -y
+  - apt-get install python3 brotli -y
+  - dotnet workload restore
+    SpellWork.Avalonia/SpellWork.Avalonia.Browser/SpellWork.Avalonia.Browser.csproj
+pages:
+  script:
+    - dotnet publish -c Release
+      SpellWork.Avalonia/SpellWork.Avalonia.Browser/SpellWork.Avalonia.Browser.csproj
+    - find SpellWork.Avalonia/SpellWork.Avalonia.Browser/bin/Release/net7.0/browser-wasm/AppBundle/ -type f -exec brotli {} \;
+    - cp -R "SpellWork.Avalonia/SpellWork.Avalonia.Browser/bin/Release/net7.0/browser-wasm/AppBundle" public/335
+  artifacts:
+    paths:
+      - public
