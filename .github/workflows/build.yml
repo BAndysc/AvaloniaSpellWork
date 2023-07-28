@@ -1,0 +1,92 @@
+name: dotnet publish
+
+on: [push]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-version: [ '7.0.x' ]
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: apply patch
+        run: |
+          cd DBCD
+          git apply ../perf.patch
+          cd ..
+
+      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      # disabled as it looks like dotnet/wasm doesn't work with cache
+      - name: Cache
+        if: false
+        uses: actions/cache@v3
+        with:
+          path: .
+          key: spellwork
+
+      - name: Install dependencies
+        run: dotnet workload restore SpellWork.Avalonia/SpellWork.Avalonia.Browser/SpellWork.Avalonia.Browser.csproj
+
+      - name: Reset AppBundle
+        run: rm -rf SpellWork.Avalonia/SpellWork.Avalonia.Browser/bin/Release/net7.0/browser-wasm/AppBundle/
+
+      - name: Build
+        run: dotnet publish -c Release SpellWork.Avalonia/SpellWork.Avalonia.Browser/SpellWork.Avalonia.Browser.csproj
+
+      - name: Fix permissions
+        run: |
+          chmod -c -R +rX "SpellWork.Avalonia/SpellWork.Avalonia.Browser/bin/Release/net7.0/browser-wasm/AppBundle/" | while read line; do
+            echo "::warning title=Invalid file permissions automatically fixed::$line"
+          done
+          mkdir publish
+          cp -R "SpellWork.Avalonia/SpellWork.Avalonia.Browser/bin/Release/net7.0/browser-wasm/AppBundle/" publish/10.x
+          ls -la
+          cd publish
+          ls -la
+          cd ../
+          git checkout master
+
+      - name: Reset AppBundle
+        run: rm -rf SpellWork.Avalonia/SpellWork.Avalonia.Browser/bin/Release/net7.0/browser-wasm/AppBundle/
+
+      - name: Build
+        run: dotnet publish -c Release SpellWork.Avalonia/SpellWork.Avalonia.Browser/SpellWork.Avalonia.Browser.csproj
+
+      - name: Fix permissions
+        run: |
+          chmod -c -R +rX "SpellWork.Avalonia/SpellWork.Avalonia.Browser/bin/Release/net7.0/browser-wasm/AppBundle/" | while read line; do
+            echo "::warning title=Invalid file permissions automatically fixed::$line"
+          done
+          cp -R "SpellWork.Avalonia/SpellWork.Avalonia.Browser/bin/Release/net7.0/browser-wasm/AppBundle/" publish/335
+          ls -la
+          cd publish
+          ls -la
+          cd ../
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: publish/
+        
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
