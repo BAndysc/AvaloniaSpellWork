@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -233,7 +234,7 @@ public partial class SpellInfoViewModel : ObservableObject
             pendingSearch = null;
     }
     
-    private void FillStructFilterTypes<T>(List<StructFilterTypeViewModel> output)
+    private void FillStructFilterTypes<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(List<StructFilterTypeViewModel> output)
     {
         var type = typeof(T).GetMembers();
         var i = 0;

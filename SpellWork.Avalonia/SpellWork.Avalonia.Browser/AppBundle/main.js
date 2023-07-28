@@ -23,6 +23,8 @@ dotnetRuntime.setModuleImports("main.js", {
 const config = dotnetRuntime.getConfig();
 
 let href = window.location.href;
+if (href.indexOf("?") !== -1)
+    href = href.slice(0, href.indexOf("?"))
 if (href.indexOf("index.html") !== -1)
     href = href.slice(0, href.indexOf("index.html"))
 
