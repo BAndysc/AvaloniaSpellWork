@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:utils="clr-namespace:SpellWork.Avalonia.Utils"
+             xmlns:viewModels="clr-namespace:SpellWork.ViewModels;assembly=SpellWork"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="SpellWork.Avalonia.Views.SpellCompareView"
+             x:DataType="viewModels:SpellCompareViewModel">
+  <Grid ColumnDefinitions="*,5,*">
+    <DockPanel>
+      <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="5">
+        <TextBlock>Spell ID:</TextBlock>
+        <TextBox Text="{CompiledBinding LeftSpellId}" />
+      </StackPanel>
+      <ScrollViewer Background="#10000000"
+                    HorizontalScrollBarVisibility="Auto">
+        <utils:RichTextBoxEmulator Focusable="True"
+                                   Padding="5" 
+                                   SelectionBrush="LightBlue" 
+                                   VerticalAlignment="Top"
+                                   Background="Transparent"
+                                   Source="{CompiledBinding LeftTextView, Mode=OneWayToSource}">
+        </utils:RichTextBoxEmulator>
+      </ScrollViewer>
+      
+    </DockPanel>
+    <GridSplitter Grid.Column="1" />
+    <DockPanel Grid.Column="2">
+      <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="5">
+        <TextBlock>Spell ID:</TextBlock>
+        <TextBox Text="{CompiledBinding RightSpellId}" />
+      </StackPanel>
+      <ScrollViewer Background="#10000000"
+                    HorizontalScrollBarVisibility="Auto">
+        <utils:RichTextBoxEmulator Focusable="True"
+                                   Padding="5" 
+                                   SelectionBrush="LightBlue" 
+                                   VerticalAlignment="Top"
+                                   Background="Transparent"
+                                   Source="{CompiledBinding RightTextView, Mode=OneWayToSource}">
+        </utils:RichTextBoxEmulator>
+      </ScrollViewer>
+      
+    </DockPanel>
+  </Grid>
+</UserControl>

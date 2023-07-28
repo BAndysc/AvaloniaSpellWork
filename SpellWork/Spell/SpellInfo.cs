@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Windows.Forms;
 
 namespace SpellWork.Spell
 {
@@ -261,7 +260,7 @@ namespace SpellWork.Spell
             SpellName = spellName;
         }
 
-        public void Write(RichTextBox rtb)
+        public void Write(IRichTextBox rtb)
         {
             rtb.Clear();
 
@@ -324,6 +323,7 @@ namespace SpellWork.Spell
                 rtb.SetStyle(Color.Blue, FontStyle.Bold);
                 rtb.AppendFormatLine("Modified by {0} ({1})",
                     DBC.DBC.SpellInfoStore[eff.SpellID].Name, eff.SpellID);
+                rtb.SetDefaultStyle();
             }
             #endregion
 
@@ -730,7 +730,7 @@ namespace SpellWork.Spell
             }
         }
 
-        private void AppendEffectInfo(RichTextBox rtb, SpellEffectEntry effect)
+        private void AppendEffectInfo(IRichTextBox rtb, SpellEffectEntry effect)
         {
             rtb.SetBold();
             rtb.AppendFormatLine($"Effect { effect.EffectIndex }: Id { effect.Effect } ({ (SpellEffects)effect.Effect })");
@@ -870,7 +870,7 @@ namespace SpellWork.Spell
             rtb.AppendLine();
         }
 
-        private static void AppendRadius(RichTextBox rtb, string name, uint radiusIndex)
+        private static void AppendRadius(IRichTextBox rtb, string name, uint radiusIndex)
         {
             if (!DBC.DBC.SpellRadius.ContainsKey((int)radiusIndex))
                 return;
@@ -879,7 +879,7 @@ namespace SpellWork.Spell
                 $" (Min: {DBC.DBC.SpellRadius[(int)radiusIndex].RadiusMin:F} Max: {DBC.DBC.SpellRadius[(int)radiusIndex].MaxRadius:F})");
         }
 
-        private static void AuraModTypeName(RichTextBox rtb, SpellEffectEntry effect)
+        private static void AuraModTypeName(IRichTextBox rtb, SpellEffectEntry effect)
         {
             var aura = (AuraType)effect.EffectAura;
             var misc = effect.EffectMiscValue[0];
@@ -954,7 +954,7 @@ namespace SpellWork.Spell
             }
         }
 
-        private void AppendItemInfo(RichTextBox rtb)
+        private void AppendItemInfo(IRichTextBox rtb)
         {
             var items = (from effect in DBC.DBC.ItemEffect.Values
                           where effect.SpellID == ID

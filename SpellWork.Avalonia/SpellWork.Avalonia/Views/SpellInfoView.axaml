@@ -1,0 +1,157 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:SpellWork.ViewModels;assembly=SpellWork"
+             xmlns:utils="clr-namespace:SpellWork.Avalonia.Utils"
+             xmlns:swControls="clr-namespace:SpellWork.Avalonia.Controls"
+             xmlns:views="clr-namespace:SpellWork.Avalonia.Views"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="SpellWork.Avalonia.Views.SpellInfoView"
+             x:Name="Root"
+             x:DataType="viewModels:SpellInfoViewModel">
+  
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Enter" Command="{CompiledBinding DoSearchCommand}" />
+  </UserControl.KeyBindings>
+  
+  <ScrollViewer x:Name="MasterScroll">
+    <Grid x:Name="Grid">
+      <ScrollViewer Background="#10000000"
+                    x:Name="SpellInfoPanel"
+                    HorizontalScrollBarVisibility="Auto"
+                    >
+        <utils:RichTextBoxEmulator Focusable="True"
+                                   Padding="5" 
+                                   SelectionBrush="LightBlue" 
+                                   VerticalAlignment="Top"
+                                   Background="Transparent"
+                                   Source="{CompiledBinding TextView, Mode=OneWayToSource}">
+          <utils:RichTextBoxEmulator.KeyBindings>
+            <KeyBinding Gesture="Control+A" Command="{CompiledBinding SelectAllTextCommand}" />
+          </utils:RichTextBoxEmulator.KeyBindings>
+        </utils:RichTextBoxEmulator>
+      </ScrollViewer>
+      
+      <GridSplitter Grid.Column="1">
+        <GridSplitter.Template>
+          <ControlTemplate>
+            <Border Background="Transparent">
+              <Border HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="{TemplateBinding Background}" Width="1" />
+            </Border>
+          </ControlTemplate>
+        </GridSplitter.Template>
+      </GridSplitter>
+      
+      <ScrollViewer Padding="0,0,0,5" x:Name="OptionsPanel">
+        <swControls:VerticalPanel>
+          <HeaderedContentControl DockPanel.Dock="Top" Header="Spell search">
+            <Grid ColumnDefinitions="Auto,5,*,5,Auto" RowDefinitions="Auto,3,Auto,3,Auto">
+              <TextBlock Grid.Column="0" Grid.Row="0">ID or Name:</TextBlock>
+              <TextBox Grid.Column="2" Grid.Row="0" Text="{CompiledBinding SearchText}" />
+              <Button Grid.Column="4" Grid.Row="0" Command="{CompiledBinding DoSearchCommand}">Search</Button>
+              
+              <TextBlock Grid.Column="0" Grid.Row="2">Icon ID:</TextBlock>
+              <TextBox Grid.Column="2" Grid.Row="2" Text="{CompiledBinding SearchIcon}" />
+    
+              <TextBlock Grid.Column="0" Grid.Row="4">Attributes&amp;X:</TextBlock>
+              <TextBox Grid.Column="2" Grid.Row="4" Text="{CompiledBinding SearchAttribute}" />
+            </Grid>
+          </HeaderedContentControl>
+          <HeaderedContentControl DockPanel.Dock="Top" Header="Spell Filter">
+            <StackPanel Spacing="3">
+              <ComboBox SelectedItem="{CompiledBinding SpellFamilyName}" ItemsSource="{CompiledBinding SpellFamilyNames}" PlaceholderText="SpellFamilyName" />
+              <ComboBox SelectedItem="{CompiledBinding AuraType}" ItemsSource="{CompiledBinding AuraTypes}" PlaceholderText="Aura" />
+              <ComboBox SelectedItem="{CompiledBinding SpellEffect}" ItemsSource="{CompiledBinding SpellEffects}" PlaceholderText="Effect" />
+              <ComboBox SelectedItem="{CompiledBinding TargetA}" ItemsSource="{CompiledBinding Targets}" PlaceholderText="Target A" />
+              <ComboBox SelectedItem="{CompiledBinding TargetB}" ItemsSource="{CompiledBinding Targets}" PlaceholderText="Target B" />
+            </StackPanel>
+          </HeaderedContentControl>
+          <HeaderedContentControl DockPanel.Dock="Top" Header="Advanced Filter">
+            <ItemsControl ItemsSource="{CompiledBinding AdvancedFilters}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Spacing="3" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <views:AdvancedFilter />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </HeaderedContentControl>
+          <DataGrid Margin="6" swControls:VerticalPanel.Flex="True" MinHeight="120" SelectedItem="{CompiledBinding SelectedSpell}" ItemsSource="{CompiledBinding Spells}">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="ID" Binding="{CompiledBinding Entry}" />
+              <DataGridTextColumn Header="Name" Binding="{CompiledBinding SpellName}" />
+            </DataGrid.Columns>
+            <DataGrid.Styles>
+              <Style Selector="DataGridCell">
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="MinHeight" Value="20" />
+              </Style>
+              <Style Selector="DataGridRow:nth-child(2n+1)">
+                <Setter Property="Background" Value="#ffffff"></Setter>
+              </Style>
+              <Style Selector="DataGridRow:nth-child(2n)">
+                <Setter Property="Background" Value="#F6F6F6"></Setter>
+              </Style>
+            </DataGrid.Styles>
+          </DataGrid>
+        </swControls:VerticalPanel>
+      </ScrollViewer>
+    </Grid>    
+  </ScrollViewer>
+  
+  
+  <UserControl.Styles>
+    <Style Selector="ScrollViewer#MasterScroll.desktop ScrollViewer#SpellInfoPanel">
+      <Setter Property="(Grid.Column)" Value="0"/>
+      <Setter Property="(Grid.Row)" Value="0"/>
+      <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+    </Style>
+    <Style Selector="ScrollViewer#MasterScroll.desktop ScrollViewer#OptionsPanel">
+      <Setter Property="(Grid.Row)" Value="0"/>
+      <Setter Property="(Grid.Column)" Value="2"/>
+    </Style>
+    <Style Selector="ScrollViewer#MasterScroll.desktop">
+      <Setter Property="VerticalScrollBarVisibility" Value="Disabled"/>
+      <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+    </Style>
+    <Style Selector="ScrollViewer#MasterScroll.desktop Grid#Grid">
+      <Setter Property="(utils:GridUtils.RowDefinitions)" Value="*"/>
+      <Setter Property="(utils:GridUtils.ColumnDefinitions)" Value="*,10,350"/>
+    </Style>
+    
+    <Style Selector="ScrollViewer#MasterScroll.mobile ScrollViewer#SpellInfoPanel">
+      <Setter Property="(Grid.Column)" Value="0"/>
+      <Setter Property="(Grid.Row)" Value="1"/>
+      <Setter Property="VerticalScrollBarVisibility" Value="Disabled" />
+    </Style>
+    <Style Selector="ScrollViewer#MasterScroll.mobile ScrollViewer#OptionsPanel">
+      <Setter Property="(Grid.Column)" Value="0"/>
+      <Setter Property="(Grid.Row)" Value="0"/>
+    </Style>
+    <Style Selector="ScrollViewer#MasterScroll.mobile">
+      <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+      <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+    </Style>
+    <Style Selector="ScrollViewer#MasterScroll.mobile Grid#Grid">
+      <Setter Property="(utils:GridUtils.RowDefinitions)" Value="Auto,*"/>
+      <Setter Property="(utils:GridUtils.ColumnDefinitions)" Value="*,0"/>
+    </Style>
+  </UserControl.Styles>
+  
+  <Interaction.Behaviors>
+    <AdaptiveBehavior SourceControl="{Binding #MasterScroll}" 
+                      TargetControl="{Binding #MasterScroll}">
+      <AdaptiveClassSetter MaxWidth="750" 
+                           MaxWidthOperator="LessThan" 
+                           ClassName="mobile" />
+      <AdaptiveClassSetter MinWidth="750" 
+                           MinWidthOperator="GreaterThanOrEqual" 
+                           ClassName="desktop" />
+    </AdaptiveBehavior>
+  </Interaction.Behaviors>
+</UserControl>

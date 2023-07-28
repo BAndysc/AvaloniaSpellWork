@@ -4,7 +4,6 @@ using SpellWork.Properties;
 using SpellWork.Spell;
 using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
 
 namespace SpellWork.Database
 {
@@ -388,7 +387,7 @@ namespace SpellWork.Database
             }
             catch (MySqlException ex)
             {
-                MessageBox.Show($"Errno {ex.Number}{Environment.NewLine}{ex.Message}");
+                Globals.MessageBoxService.Show("Error", $"Errno {ex.Number}{Environment.NewLine}{ex.Message}");
                 Connected = false;
             }
             catch

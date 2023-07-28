@@ -1,0 +1,411 @@
+diff --git a/DBCD/DBCD.csproj b/DBCD/DBCD.csproj
+index 4652da3..55a759f 100644
+--- a/DBCD/DBCD.csproj
++++ b/DBCD/DBCD.csproj
+@@ -1,7 +1,7 @@
+ <Project Sdk="Microsoft.NET.Sdk">
+ 
+   <PropertyGroup>
+-    <TargetFrameworks>netstandard2.0;net6.0;net7.0</TargetFrameworks>
++    <TargetFrameworks>netstandard2.1;net6.0;net7.0</TargetFrameworks>
+   </PropertyGroup>
+ 
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+diff --git a/DBFileReaderLib/Common/BitReader.cs b/DBFileReaderLib/Common/BitReader.cs
+index e2a7a77..648bf8e 100644
+--- a/DBFileReaderLib/Common/BitReader.cs
++++ b/DBFileReaderLib/Common/BitReader.cs
+@@ -1,4 +1,5 @@
+-﻿using System.Collections.Generic;
++﻿using System;
++using System.Collections.Generic;
+ using System.Runtime.CompilerServices;
+ using System.Text;
+ 
+@@ -23,16 +24,35 @@ namespace DBFileReaderLib.Common
+ 
+         public uint ReadUInt32(int numBits)
+         {
+-            uint result = Unsafe.As<byte, uint>(ref m_array[m_readOffset + (m_readPos >> 3)]) << (32 - numBits - (m_readPos & 7)) >> (32 - numBits);
++            uint result;
++            if (m_readPos % 8 == 0 && numBits == 32)
++            {
++                // Read a full byte and cast it directly.
++                result = Unsafe.As<byte, uint>(ref m_array[m_readOffset + m_readPos / 8]);
++            }
++            else
++            {
++                result = Unsafe.As<byte, uint>(ref m_array[m_readOffset + (m_readPos >> 3)]) << (32 - numBits - (m_readPos & 7)) >> (32 - numBits);
++            }
+             m_readPos += numBits;
+             return result;
+         }
+ 
+         public ulong ReadUInt64(int numBits)
+         {
+-            ulong result = Unsafe.As<byte, ulong>(ref m_array[m_readOffset + (m_readPos >> 3)]) << (64 - numBits - (m_readPos & 7)) >> (64 - numBits);
+-            m_readPos += numBits;
+-            return result;
++            if (m_readPos % 8 == 0 && numBits == 64)
++            {
++                // Read a full byte and cast it directly.
++                ulong result = Unsafe.As<byte, ulong>(ref m_array[m_readOffset + m_readPos / 8]);
++                m_readPos += numBits;
++                return result;
++            }
++            else
++            {
++                ulong result = Unsafe.As<byte, ulong>(ref m_array[m_readOffset + (m_readPos >> 3)]) << (64 - numBits - (m_readPos & 7)) >> (64 - numBits);
++                m_readPos += numBits;
++                return result;                
++            }
+         }
+ 
+         public Value32 ReadValue32(int numBits)
+@@ -68,11 +88,23 @@ namespace DBFileReaderLib.Common
+         {
+             uint num;
+ 
+-            List<byte> bytes = new List<byte>(0x20);
+-            while ((num = ReadUInt32(8)) != 0)
+-                bytes.Add((byte)num);
++            if (m_readPos % 8 == 0)
++            {
++                int length = 0;
++                while (m_array[m_readOffset + m_readPos / 8 + length] != 0)
++                    length++;
++                var str = Encoding.UTF8.GetString(m_array.AsSpan(m_readOffset + m_readPos / 8, length));
++                m_readPos += (length + 1) * 8;
++                return str;
++            }
++            else
++            {
++                List<byte> bytes = new List<byte>(0x20);
++                while ((num = ReadUInt32(8)) != 0)
++                    bytes.Add((byte)num);
+ 
+-            return Encoding.UTF8.GetString(bytes.ToArray());
++                return Encoding.UTF8.GetString(bytes.ToArray());   
++            }
+         }
+ 
+         public override int GetHashCode()
+diff --git a/DBFileReaderLib/DBFileReaderLib.csproj b/DBFileReaderLib/DBFileReaderLib.csproj
+index 6deeae6..b5339da 100644
+--- a/DBFileReaderLib/DBFileReaderLib.csproj
++++ b/DBFileReaderLib/DBFileReaderLib.csproj
+@@ -1,7 +1,7 @@
+ <Project Sdk="Microsoft.NET.Sdk">
+ 
+   <PropertyGroup>
+-    <TargetFrameworks>netstandard2.0;net6.0;net7.0</TargetFrameworks>
++    <TargetFrameworks>netstandard2.1;net6.0;net7.0</TargetFrameworks>
+   </PropertyGroup>
+ 
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+diff --git a/DBFileReaderLib/DBReader.cs b/DBFileReaderLib/DBReader.cs
+index 9960323..5668c34 100644
+--- a/DBFileReaderLib/DBReader.cs
++++ b/DBFileReaderLib/DBReader.cs
+@@ -79,13 +79,15 @@ namespace DBFileReaderLib
+ 
+         protected virtual void ReadRecords<T>(IDictionary<int, T> storage) where T : class, new()
+         {
+-            var fieldCache = typeof(T).GetFields().Select(x => new FieldCache<T>(x)).ToArray();
++            var fieldCache = typeof(T).GetFields().OrderBy(field => field.MetadataToken).Select(x => new FieldCache<T>(x)).ToArray();
+ 
++            _reader.Initialize(fieldCache);
++            
+             _reader.Enumerate((row) =>
+             {
+                 T entry = new T();
+                 row.GetFields(fieldCache, entry);
+-                lock (storage)
++                //lock (storage)
+                 {
+                     storage.Add(row.Id, entry);
+                 }
+diff --git a/DBFileReaderLib/FieldCache.cs b/DBFileReaderLib/FieldCache.cs
+index 53fe061..682d5f2 100644
+--- a/DBFileReaderLib/FieldCache.cs
++++ b/DBFileReaderLib/FieldCache.cs
+@@ -1,17 +1,23 @@
+ ﻿using DBFileReaderLib.Attributes;
+ using System;
++using System.Collections.Generic;
+ using System.Reflection;
++using DBFileReaderLib.Common;
++using DBFileReaderLib.Readers;
+ 
+ namespace DBFileReaderLib
+ {
+     class FieldCache<T>
+     {
+-        private readonly FieldInfo Field;
++        public readonly FieldInfo Field;
+         public readonly bool IsArray = false;
+         public readonly bool IsLocalisedString = false;
+         public readonly bool IsNonInlineRelation = false;
+         public readonly Action<T, object> Setter;
+         public readonly LocaleAttribute LocaleInfo;
++        
++        public Func<BitReader, int, FieldMetaData, ColumnMetaData, Value32[], Dictionary<int, Value32>, Dictionary<long, string>, object> arrayReader;
++        public Func<int, BitReader, int, FieldMetaData, ColumnMetaData, Value32[], Dictionary<int, Value32>,Dictionary<long, string>, BaseReader, object> reader;
+ 
+         // Type of the variable that is used to store the field
+         // Might not match the information retrieved from client
+diff --git a/DBFileReaderLib/Readers/BaseReader.cs b/DBFileReaderLib/Readers/BaseReader.cs
+index 9820dba..def41bd 100644
+--- a/DBFileReaderLib/Readers/BaseReader.cs
++++ b/DBFileReaderLib/Readers/BaseReader.cs
+@@ -55,8 +55,12 @@ namespace DBFileReaderLib.Readers
+ 
+         public void Enumerate(Action<IDBRow> action)
+         {
+-            Parallel.ForEach(_Records.Values, action);
+-            Parallel.ForEach(GetCopyRows(), action);
++            foreach (var val in _Records.Values)
++                action(val);
++            foreach (var x in GetCopyRows())
++                action(x);
++            //Parallel.ForEach(_Records.Values, action);
++            //Parallel.ForEach(GetCopyRows(), action);
+         }
+ 
+         private IEnumerable<IDBRow> GetCopyRows()
+@@ -80,6 +84,11 @@ namespace DBFileReaderLib.Readers
+         }
+ 
+         #endregion
++
++        public virtual void Initialize<T>(FieldCache<T>[] fieldCache) where T : class, new()
++        {
++            
++        }
+     }
+ 
+ }
+diff --git a/DBFileReaderLib/Readers/WDC4Reader.cs b/DBFileReaderLib/Readers/WDC4Reader.cs
+index 789423a..bf89a9c 100644
+--- a/DBFileReaderLib/Readers/WDC4Reader.cs
++++ b/DBFileReaderLib/Readers/WDC4Reader.cs
+@@ -44,47 +44,51 @@ namespace DBFileReaderLib.Readers
+ 
+             Id = id;
+         }
++        
+ 
+-        private static Dictionary<Type, Func<int, BitReader, int, FieldMetaData, ColumnMetaData, Value32[], Dictionary<int, Value32>, Dictionary<long, string>, BaseReader, object>> simpleReaders = new Dictionary<Type, Func<int, BitReader, int, FieldMetaData, ColumnMetaData, Value32[], Dictionary<int, Value32>, Dictionary<long, string>, BaseReader, object>>
++        private static T GetFieldValue<T>(int Id, BitReader r, FieldMetaData fieldMeta, ColumnMetaData columnMeta, Value32[] palletData, Dictionary<int, Value32> commonData) where T : struct
+         {
+-            [typeof(ulong)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => GetFieldValue<ulong>(id, data, fieldMeta, columnMeta, palletData, commonData),
+-            [typeof(long)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => GetFieldValue<long>(id, data, fieldMeta, columnMeta, palletData, commonData),
+-            [typeof(float)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => GetFieldValue<float>(id, data, fieldMeta, columnMeta, palletData, commonData),
+-            [typeof(int)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => GetFieldValue<int>(id, data, fieldMeta, columnMeta, palletData, commonData),
+-            [typeof(uint)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => GetFieldValue<uint>(id, data, fieldMeta, columnMeta, palletData, commonData),
+-            [typeof(short)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => GetFieldValue<short>(id, data, fieldMeta, columnMeta, palletData, commonData),
+-            [typeof(ushort)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => GetFieldValue<ushort>(id, data, fieldMeta, columnMeta, palletData, commonData),
+-            [typeof(sbyte)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => GetFieldValue<sbyte>(id, data, fieldMeta, columnMeta, palletData, commonData),
+-            [typeof(byte)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => GetFieldValue<byte>(id, data, fieldMeta, columnMeta, palletData, commonData),
+-            [typeof(string)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => header.Flags.HasFlagExt(DB2Flags.Sparse) ? data.ReadCString() :
+-                getStringTableRecord(stringTable, recordOffset, id, data, fieldMeta, columnMeta, palletData, commonData),
+-        };
++            switch (columnMeta.CompressionType)
++            {
++                case CompressionType.None:
++                    {
++                        int bitSize = 32 - fieldMeta.Bits;
++                        if (bitSize <= 0)
++                            bitSize = columnMeta.Immediate.BitWidth;
+ 
+-        private static string getStringTableRecord(Dictionary<long, string> stringTable, int recordOffset, int id, BitReader data, FieldMetaData fieldMeta, ColumnMetaData columnMeta, Value32[] palletData, Dictionary<int, Value32> commonData)
+-        {
+-            var index = recordOffset + (data.Position >> 3) + GetFieldValue<int>(id, data, fieldMeta, columnMeta, palletData, commonData);
++                        return r.ReadValue64(bitSize).GetValue<T>();
++                    }
++                case CompressionType.SignedImmediate:
++                    {
++                        return r.ReadValue64Signed(columnMeta.Immediate.BitWidth).GetValue<T>();
++                    }
++                case CompressionType.Immediate:
++                    {
++                        return r.ReadValue64(columnMeta.Immediate.BitWidth).GetValue<T>();
++                    }
++                case CompressionType.Common:
++                    {
++                        if (commonData.TryGetValue(Id, out Value32 val))
++                            return val.GetValue<T>();
++                        return columnMeta.Common.DefaultValue.GetValue<T>();
++                    }
++                case CompressionType.Pallet:
++                    {
++                        uint palletIndex = r.ReadUInt32(columnMeta.Pallet.BitWidth);
++                        return palletData[palletIndex].GetValue<T>();
++                    }
++                case CompressionType.PalletArray:
++                    {
++                        if (columnMeta.Pallet.Cardinality != 1)
++                            break;
+ 
+-            if (!stringTable.TryGetValue(index, out string result))
+-                result = "";
++                        uint palletArrayIndex = r.ReadUInt32(columnMeta.Pallet.BitWidth);
++                        return palletData[(int)palletArrayIndex].GetValue<T>();
++                    }
++            }
+ 
+-            return result;
++            throw new Exception(string.Format("Unexpected compression type {0}", columnMeta.CompressionType));
+         }
+-
+-        private static Dictionary<Type, Func<BitReader, int, FieldMetaData, ColumnMetaData, Value32[], Dictionary<int, Value32>, Dictionary<long, string>, object>> arrayReaders = new Dictionary<Type, Func<BitReader, int, FieldMetaData, ColumnMetaData, Value32[], Dictionary<int, Value32>, Dictionary<long, string>, object>>
+-        {
+-            [typeof(ulong[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<ulong>(data, fieldMeta, columnMeta, palletData, commonData),
+-            [typeof(long[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<long>(data, fieldMeta, columnMeta, palletData, commonData),
+-            [typeof(float[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<float>(data, fieldMeta, columnMeta, palletData, commonData),
+-            [typeof(int[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<int>(data, fieldMeta, columnMeta, palletData, commonData),
+-            [typeof(uint[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<uint>(data, fieldMeta, columnMeta, palletData, commonData),
+-            [typeof(ulong[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<ulong>(data, fieldMeta, columnMeta, palletData, commonData),
+-            [typeof(short[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<short>(data, fieldMeta, columnMeta, palletData, commonData),
+-            [typeof(ushort[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<ushort>(data, fieldMeta, columnMeta, palletData, commonData),
+-            [typeof(byte[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<byte>(data, fieldMeta, columnMeta, palletData, commonData),
+-            [typeof(sbyte[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<sbyte>(data, fieldMeta, columnMeta, palletData, commonData),
+-            [typeof(string[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueStringArray(data, fieldMeta, columnMeta, recordOffset, stringTable),
+-        };
+-
+         public void GetFields<T>(FieldCache<T>[] fields, T entry)
+         {
+             int indexFieldOffSet = 0;
+@@ -117,23 +121,37 @@ namespace DBFileReaderLib.Readers
+ 
+                 if (info.IsArray)
+                 {
+-                    if (arrayReaders.TryGetValue(info.FieldType, out var reader))
+-                        value = reader(m_data, m_recordOffset, m_fieldMeta[fieldIndex], m_columnMeta[fieldIndex], m_palletData[fieldIndex], m_commonData[fieldIndex], m_reader.StringTable);
+-                    else
+-                        throw new Exception("Unhandled array type: " + typeof(T).Name);
++//                    if (arrayReaders.TryGetValue(info.FieldType, out arrayReader))
++                        value = info.arrayReader(m_data, m_recordOffset, m_fieldMeta[fieldIndex], m_columnMeta[fieldIndex], m_palletData[fieldIndex], m_commonData[fieldIndex], m_reader.StringTable);
++  //                  else
++    //                    throw new Exception("Unhandled array type: " + typeof(T).Name);
+                 }
+                 else
+                 {
+-                    if (simpleReaders.TryGetValue(info.FieldType, out var reader))
+-                        value = reader(Id, m_data, m_recordOffset, m_fieldMeta[fieldIndex], m_columnMeta[fieldIndex], m_palletData[fieldIndex], m_commonData[fieldIndex], m_reader.StringTable, m_reader);
+-                    else
+-                        throw new Exception("Unhandled field type: " + typeof(T).Name);
++//                    if (simpleReaders.TryGetValue(info.FieldType, out reader))
++                        value = info.reader(Id, m_data, m_recordOffset, m_fieldMeta[fieldIndex], m_columnMeta[fieldIndex], m_palletData[fieldIndex], m_commonData[fieldIndex], m_reader.StringTable, m_reader);
++  //                  else
++    //                    throw new Exception("Unhandled field type: " + typeof(T).Name);
+                 }
+ 
+                 info.Setter(entry, value);
+             }
+         }
+ 
++
++        public IDBRow Clone()
++        {
++            return (IDBRow)MemberwiseClone();
++        }
++    }
++
++    class WDC4Reader : BaseEncryptionSupportingReader
++    {
++        private const int HeaderSize = 72;
++        private const uint WDC4FmtSig = 0x34434457; // WDC4
++
++        public WDC4Reader(string dbcFile) : this(new FileStream(dbcFile, FileMode.Open)) { }
++
+         private static T GetFieldValue<T>(int Id, BitReader r, FieldMetaData fieldMeta, ColumnMetaData columnMeta, Value32[] palletData, Dictionary<int, Value32> commonData) where T : struct
+         {
+             switch (columnMeta.CompressionType)
+@@ -177,7 +195,7 @@ namespace DBFileReaderLib.Readers
+ 
+             throw new Exception(string.Format("Unexpected compression type {0}", columnMeta.CompressionType));
+         }
+-
++        
+         private static T[] GetFieldValueArray<T>(BitReader r, FieldMetaData fieldMeta, ColumnMetaData columnMeta, Value32[] palletData, Dictionary<int, Value32> commonData) where T : struct
+         {
+             T[] array;
+@@ -240,18 +258,68 @@ namespace DBFileReaderLib.Readers
+             throw new Exception(string.Format("Unexpected compression type {0}", columnMeta.CompressionType));
+         }
+ 
+-        public IDBRow Clone()
++
++        private static Dictionary<Type, Func<int, BitReader, int, FieldMetaData, ColumnMetaData, Value32[], Dictionary<int, Value32>, Dictionary<long, string>, BaseReader, object>> simpleReaders = new Dictionary<Type, Func<int, BitReader, int, FieldMetaData, ColumnMetaData, Value32[], Dictionary<int, Value32>, Dictionary<long, string>, BaseReader, object>>
+         {
+-            return (IDBRow)MemberwiseClone();
+-        }
+-    }
++            [typeof(ulong)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => GetFieldValue<ulong>(id, data, fieldMeta, columnMeta, palletData, commonData),
++            [typeof(long)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => GetFieldValue<long>(id, data, fieldMeta, columnMeta, palletData, commonData),
++            [typeof(float)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => GetFieldValue<float>(id, data, fieldMeta, columnMeta, palletData, commonData),
++            [typeof(int)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => GetFieldValue<int>(id, data, fieldMeta, columnMeta, palletData, commonData),
++            [typeof(uint)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => GetFieldValue<uint>(id, data, fieldMeta, columnMeta, palletData, commonData),
++            [typeof(short)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => GetFieldValue<short>(id, data, fieldMeta, columnMeta, palletData, commonData),
++            [typeof(ushort)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => GetFieldValue<ushort>(id, data, fieldMeta, columnMeta, palletData, commonData),
++            [typeof(sbyte)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => GetFieldValue<sbyte>(id, data, fieldMeta, columnMeta, palletData, commonData),
++            [typeof(byte)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => GetFieldValue<byte>(id, data, fieldMeta, columnMeta, palletData, commonData),
++            [typeof(string)] = (id, data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable, header) => header.Flags.HasFlagExt(DB2Flags.Sparse) ? data.ReadCString() :
++                getStringTableRecord(stringTable, recordOffset, id, data, fieldMeta, columnMeta, palletData, commonData),
++        };
+ 
+-    class WDC4Reader : BaseEncryptionSupportingReader
+-    {
+-        private const int HeaderSize = 72;
+-        private const uint WDC4FmtSig = 0x34434457; // WDC4
++        private static string getStringTableRecord(Dictionary<long, string> stringTable, int recordOffset, int id, BitReader data, FieldMetaData fieldMeta, ColumnMetaData columnMeta, Value32[] palletData, Dictionary<int, Value32> commonData)
++        {
++            var index = recordOffset + (data.Position >> 3) + GetFieldValue<int>(id, data, fieldMeta, columnMeta, palletData, commonData);
+ 
+-        public WDC4Reader(string dbcFile) : this(new FileStream(dbcFile, FileMode.Open)) { }
++            if (!stringTable.TryGetValue(index, out string result))
++                result = "";
++
++            return result;
++        }
++
++        private static Dictionary<Type, Func<BitReader, int, FieldMetaData, ColumnMetaData, Value32[], Dictionary<int, Value32>, Dictionary<long, string>, object>> arrayReaders = new Dictionary<Type, Func<BitReader, int, FieldMetaData, ColumnMetaData, Value32[], Dictionary<int, Value32>, Dictionary<long, string>, object>>
++        {
++            [typeof(ulong[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<ulong>(data, fieldMeta, columnMeta, palletData, commonData),
++            [typeof(long[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<long>(data, fieldMeta, columnMeta, palletData, commonData),
++            [typeof(float[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<float>(data, fieldMeta, columnMeta, palletData, commonData),
++            [typeof(int[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<int>(data, fieldMeta, columnMeta, palletData, commonData),
++            [typeof(uint[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<uint>(data, fieldMeta, columnMeta, palletData, commonData),
++            [typeof(ulong[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<ulong>(data, fieldMeta, columnMeta, palletData, commonData),
++            [typeof(short[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<short>(data, fieldMeta, columnMeta, palletData, commonData),
++            [typeof(ushort[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<ushort>(data, fieldMeta, columnMeta, palletData, commonData),
++            [typeof(byte[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<byte>(data, fieldMeta, columnMeta, palletData, commonData),
++            [typeof(sbyte[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueArray<sbyte>(data, fieldMeta, columnMeta, palletData, commonData),
++            [typeof(string[])] = (data, recordOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValueStringArray(data, fieldMeta, columnMeta, recordOffset, stringTable),
++        };
++        
++        public override void Initialize<T>(FieldCache<T>[] fields)
++        {
++            for (int i = 0; i < fields.Length; i++)
++            {
++                FieldCache<T> info = fields[i];
++                if (info.IsArray)
++                {
++                    if (arrayReaders.TryGetValue(info.FieldType, out var arrayReader))
++                        info.arrayReader = arrayReader;
++                    else
++                        throw new Exception("Unhandled array type: " + typeof(T).Name);
++                }
++                else
++                {
++                    if (simpleReaders.TryGetValue(info.FieldType, out var reader))
++                        info.reader = reader;
++                    else
++                        throw new Exception("Unhandled field type: " + typeof(T).Name);
++                }
++            }
++        }
+ 
+         public WDC4Reader(Stream stream)
+         {

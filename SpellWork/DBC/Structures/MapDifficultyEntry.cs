@@ -1,8 +1,10 @@
 ﻿using DBFileReaderLib.Attributes;
 using System;
+using System.Runtime.InteropServices;
 
 namespace SpellWork.DBC.Structures
 {
+    [StructLayout(LayoutKind.Sequential)]
     public class MapDifficultyEntry : IComparable
     {
         [Index(true)]

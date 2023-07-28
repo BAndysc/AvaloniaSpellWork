@@ -1,0 +1,31 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:SpellWork.Avalonia"
+             x:Class="SpellWork.Avalonia.App"
+             xmlns:sty="using:FluentAvalonia.Styling"
+             RequestedThemeVariant="Light">
+             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.Styles>
+        <sty:FluentAvaloniaTheme PreferSystemTheme="False" />
+        <!-- <FluentTheme /> -->
+        <Style Selector="HeaderedContentControl">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Border Padding="6">
+                            <StackPanel>
+                                <ContentPresenter TextElement.FontWeight="Bold" Content="{TemplateBinding Header}" />
+                                <ContentPresenter Margin="6,0,0,0" Content="{TemplateBinding Content}" />
+                            </StackPanel>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Application.Styles>
+             
+    <Application.Resources>
+        <FontFamily x:Key="ContentControlThemeFontFamily">fonts:Inter#Inter, $Default</FontFamily>
+    </Application.Resources>
+</Application>

@@ -1,7 +1,9 @@
-﻿using DBFileReaderLib.Attributes;
+﻿using System.Runtime.InteropServices;
+using DBFileReaderLib.Attributes;
 
 namespace SpellWork.DBC.Structures
 {
+    [StructLayout(LayoutKind.Sequential)]
     public sealed class ItemSparseEntry
     {
         [Index(true)]

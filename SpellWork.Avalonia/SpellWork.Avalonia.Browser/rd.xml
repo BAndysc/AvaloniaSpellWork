@@ -1,0 +1,58 @@
+<Directives xmlns="http://schemas.microsoft.com/netfx/2013/01/metadata">
+    <Application>
+        <Assembly Name="SpellWork">
+            <Type Name="SpellWork.Spell.SpellInfo" Dynamic="Required All" />
+            <Type Name="SpellWork.Spell.SpellEffectInfo" Dynamic="Required All" />
+
+            <Type Name="SpellWork.DBC.Structures.AreaGroupMemberEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.AreaTableEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.ContentTuningEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.ContentTuningXExpectedEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.DifficultyEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.ExpectedStatEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.ExpectedStatModEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.MapEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.MapDifficultyEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.OverrideSpellDataEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.ScreenEffectEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellNameEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellAuraOptionsEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellAuraRestrictionsEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellCastingRequirementsEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellCastTimesEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellCategoriesEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellCategoryEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellClassOptionsEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellCooldownsEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellDescriptionVariablesEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellDurationEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellEffectEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellMiscEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellEquippedItemsEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellInterruptsEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellLabelEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellLevelsEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellPowerEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellRadiusEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellRangeEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellScalingEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellShapeshiftEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellTargetRestrictionsEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellTotemsEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellXDescriptionVariablesEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellXSpellVisualEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.RandPropPointsEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellProcsPerMinuteEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SkillLineAbilityEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SkillLineEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.ItemEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.ItemEffectEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.ItemSparseEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.ItemXItemEffectEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellReagentsEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellReagentsCurrencyEntry" Dynamic="Required All" />
+            <Type Name="SpellWork.DBC.Structures.SpellMissileEntry" Dynamic="Required All" />
+        </Assembly> 
+    </Application>
+</Directives>
