@@ -7,7 +7,6 @@
         x:Class="SpellWork.Avalonia.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
         Width="880" Height="660"
-        ShowActivated="True"
-        Title="SpellWork 3.3.5 Avalonia [beta]">
+        ShowActivated="True">
         <views:LoadingView />
 </Window>

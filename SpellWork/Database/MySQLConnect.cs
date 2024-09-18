@@ -37,6 +37,9 @@ namespace SpellWork.Database
 
         public static void SelectProc(string query)
         {
+            if (!Connected)
+                return;
+
             Dropped.Clear();
             using (var conn = new MySql.Data.MySqlClient.MySqlConnection(ConnectionString))
             {
@@ -82,6 +85,9 @@ namespace SpellWork.Database
 
         public static void LoadServersideSpells()
         {
+            if (!Connected)
+                return;
+
             var spellsQuery =
                 "SELECT Id, DifficultyID, CategoryId, Dispel, Mechanic, Attributes, AttributesEx, AttributesEx2, AttributesEx3, " +
                 "AttributesEx4, AttributesEx5, AttributesEx6, AttributesEx7, AttributesEx8, AttributesEx9, AttributesEx10, AttributesEx11, AttributesEx12, AttributesEx13, " +
@@ -107,12 +113,7 @@ namespace SpellWork.Database
                                 continue;
 
                             var spellId = reader.GetUInt32(0);
-                            var spellInfo = new SpellInfo(
-                                new SpellNameEntry()
-                                {
-                                    ID = spellId,
-                                    Name = reader.GetString(61) + " (SERVERSIDE)"
-                                },
+                            var spellInfo = new SpellInfo(reader.GetString(61) + " (SERVERSIDE)",
                                 new SpellEntry()
                                 {
                                     ID = spellId
@@ -345,8 +346,7 @@ namespace SpellWork.Database
                                 SpellID = (int)spellId
                             };
 
-                            spellInfo.Effects.Add(effect);
-                            spellInfo.SpellEffectInfoStore[effect.EffectIndex] = new SpellEffectInfo(effect);
+                            spellInfo.SpellEffectInfoStore.Add(new SpellEffectInfo(effect));
                         }
                     }
                 }
@@ -355,7 +355,7 @@ namespace SpellWork.Database
 
         public static void Insert(string query)
         {
-            if (Settings.Default.DbIsReadOnly)
+            if (!Connected || Settings.Default.DbIsReadOnly)
                 return;
 
             using (var conn = new MySql.Data.MySqlClient.MySqlConnection(ConnectionString))

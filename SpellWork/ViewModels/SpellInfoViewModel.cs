@@ -198,7 +198,7 @@ public partial class SpellInfoViewModel : ObservableObject
                             bool effectMatched = true;
                             foreach (var filter in spellEffectFilters)
                             {
-                                if (!filter(effect.Value))
+                                if (!filter(effect))
                                 {
                                     effectMatched = false;
                                     break;

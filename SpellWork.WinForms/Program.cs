@@ -42,11 +42,25 @@ namespace SpellWork
                 var mainForm = new FormMain();
                 Task.Run(async () =>
                 {
-                    await DBC.DBC.Load(new EmptyTaskProgress());
-                    if (mainForm.InvokeRequired)
-                        mainForm.Invoke(new Action(() => mainForm.Unblock()));
-                    else
-                        mainForm.Unblock();
+                    try
+                    {
+                        await DBC.DBC.Load(progress =>
+                        {
+                            if (mainForm.InvokeRequired)
+                                mainForm.Invoke(new Action(() => mainForm.SetLoadingProgress(progress)));
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Error while loading DBC: " + ex.Message);
+                    }
+                    finally
+                    {
+                        if (mainForm.InvokeRequired)
+                            mainForm.Invoke(new Action(() => mainForm.Unblock()));
+                        else
+                            mainForm.Unblock();
+                    }
                 });
                 Application.Run(mainForm);
             }

@@ -22,7 +22,7 @@ namespace SpellWork.Forms
         public FormMain()
         {
             InitializeComponent();
-            splitContainer3.SplitterDistance = 170;
+            splitContainer3.SplitterDistance = 200;
 
             Text = DBC.DBC.Version;
 
@@ -286,8 +286,8 @@ namespace SpellWork.Forms
                          (!use1Val || filterValFn1(spell)) &&
                          (!use2Val || filterValFn2(spell)) &&
                          ((!use1EffectVal && !use2EffectVal) || spell.SpellEffectInfoStore.Any(effect =>
-                         (!use1EffectVal || filterValEffectFn1(effect.Value)) &&
-                         (!use2EffectVal || filterValEffectFn2(effect.Value)))))
+                         (!use1EffectVal || filterValEffectFn1(effect)) &&
+                         (!use2EffectVal || filterValEffectFn2(effect)))))
                 .OrderBy(spell => spell.ID)
                 .ToList();
 
@@ -335,7 +335,7 @@ namespace SpellWork.Forms
 
         private void CbProcFlagCheckedChanged(object sender, EventArgs e)
         {
-            splitContainer3.SplitterDistance = ((CheckBox)sender).Checked ? 270 : 170;
+            splitContainer3.SplitterDistance = ((CheckBox)sender).Checked ? 300 : 200;
         }
 
         private void TvFamilyTreeAfterSelect(object sender, TreeViewEventArgs e)
@@ -749,6 +749,18 @@ namespace SpellWork.Forms
         public void Unblock()
         {
             tabControl1.Enabled = true;
+            _bLevelScaling.Enabled = true;
+        }
+
+        public void SetLoadingProgress(int progress)
+        {
+            loadingProgressBar1.Value = progress;
+            if (progress == 100)
+            {
+                loadingProgressBar1.Enabled = false;
+                loadingProgressBar1.Visible = false;
+                loadingProgressLabel1.Visible = false;
+            }
         }
     }
 }

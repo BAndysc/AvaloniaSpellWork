@@ -8,6 +8,7 @@ public partial class MainWindow : Window
 {
     public MainWindow()
     {
+        Title = DBC.DBC.Version;
         InitializeComponent();
     }
 }

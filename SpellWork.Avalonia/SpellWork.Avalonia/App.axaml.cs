@@ -1,5 +1,8 @@
 using System;
+using System.Configuration;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,8 +10,11 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.FileProviders;
 using SpellWork.Avalonia.Services;
 using SpellWork.Avalonia.Views;
+using SpellWork.Properties;
 using SpellWork.Services;
 using SpellWork.ViewModels;
 
@@ -27,10 +33,36 @@ public partial class App : Application
         CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("");
         CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("");
 
+        LoadConfig();
+
         messageBoxService = new MessageBoxService();
         Globals.MessageBoxService = messageBoxService;
         AvaloniaXamlLoader.Load(this);
         Application.Current!.RequestedThemeVariant = ThemeVariant.Light;
+    }
+
+    private void LoadConfig()
+    {
+        if (!File.Exists("SpellWork.config") && File.Exists("SpellWork.dll.config"))
+        {
+            try
+            {
+                File.Copy("SpellWork.dll.config", "SpellWork.config");
+            } catch (Exception) { }
+        }
+
+        var config = new ConfigurationBuilder()
+            .AddXmlFile($"{Environment.CurrentDirectory}/SpellWork.config", true)
+            .Build();
+
+        foreach (SettingsProperty setting in Properties.Settings.Default.Properties)
+        {
+            if (config[$"userSettings:SpellWork.Properties.Settings:setting:{setting.Name}:value"] is { } value)
+            {
+                var convertedValue = Convert.ChangeType(value, setting.PropertyType);
+                Settings.Default[setting.Name] = convertedValue;
+            }
+        }
     }
 
     public override void OnFrameworkInitializationCompleted()
@@ -62,6 +94,8 @@ public partial class App : Application
 
         async Task Init()
         {
+            await Task.Delay(TimeSpan.FromMilliseconds(50));
+
             await loadingViewModel.LoadTask();
 
             var content = new MainView() { DataContext = new MainViewViewModel() };

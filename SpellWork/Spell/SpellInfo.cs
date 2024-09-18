@@ -3,7 +3,6 @@ using SpellWork.Extensions;
 using SpellWork.GameTables;
 using SpellWork.GameTables.Structures;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -15,10 +14,6 @@ namespace SpellWork.Spell
 {
     public class SpellInfo
     {
-        [IgnoreAutopopulatedFilterValue]
-        public SpellEntry Spell { get; set; }
-        [IgnoreAutopopulatedFilterValue]
-        public SpellNameEntry SpellName { get; set; }
         [IgnoreAutopopulatedFilterValue]
         public SpellAuraOptionsEntry AuraOptions { get; set; }
         [IgnoreAutopopulatedFilterValue]
@@ -35,6 +30,8 @@ namespace SpellWork.Spell
         public SpellEquippedItemsEntry EquippedItems { get; set; }
         [IgnoreAutopopulatedFilterValue]
         public SpellInterruptsEntry Interrupts { get; set; }
+        [IgnoreAutopopulatedFilterValue]
+        public List<ItemEffectEntry> ItemEffects { get; } = new List<ItemEffectEntry>();
         [IgnoreAutopopulatedFilterValue]
         public ISet<uint> Labels { get; } = new HashSet<uint>();
         [IgnoreAutopopulatedFilterValue]
@@ -58,26 +55,26 @@ namespace SpellWork.Spell
         [IgnoreAutopopulatedFilterValue]
         public SpellXSpellVisualEntry SpellXSpellVisual { get; set; }
         [IgnoreAutopopulatedFilterValue]
-        public List<SpellEffectEntry> Effects { get; } = new List<SpellEffectEntry>(32);
-        [IgnoreAutopopulatedFilterValue]
         public SpellProcsPerMinuteEntry ProcsPerMinute { get; set; }
         [IgnoreAutopopulatedFilterValue]
         public SpellDescriptionVariablesEntry DescriptionVariables { get; set; }
         [IgnoreAutopopulatedFilterValue]
         public SpellDurationEntry DurationEntry { get; set; }
         [IgnoreAutopopulatedFilterValue]
+        public SpellDurationEntry PvpDurationEntry { get; set; }
+        [IgnoreAutopopulatedFilterValue]
         public SpellRangeEntry Range { get; set; }
 
         // Helper
         [IgnoreAutopopulatedFilterValue]
-        public readonly IDictionary<int, SpellEffectInfo> SpellEffectInfoStore = new ConcurrentDictionary<int, SpellEffectInfo>();
+        public readonly List<SpellEffectInfo> SpellEffectInfoStore = new List<SpellEffectInfo>();
 
         #region Spell
-        public int ID => (int)SpellName.ID;
-        public string Name => SpellName.Name;
-        public string NameSubtext => Spell?.NameSubtext ?? string.Empty;
-        public string Description => Spell?.Description ?? string.Empty;
-        public string Tooltip => Spell?.AuraDescription ?? string.Empty;
+        public int ID { get; }
+        public string Name { get; }
+        public string NameSubtext { get; }
+        public string Description { get; }
+        public string Tooltip { get; }
 
         public string NameAndSubname => NameSubtext.Length == 0 ? Name : string.Format("{0} ({1})", Name, NameSubtext);
         #endregion
@@ -169,11 +166,6 @@ namespace SpellWork.Spell
         public int ProcCooldown => AuraOptions?.ProcCategoryRecovery ?? 0;
         #endregion
 
-        #region SpellDuration
-        public int Duration => DurationEntry?.Duration ?? 0;
-        public int MaxDuration => DurationEntry?.MaxDuration ?? 0;
-        #endregion
-
         #region SpellLevels
         // SpellLevels
         public int BaseLevel => Levels?.BaseLevel ?? 0;
@@ -255,10 +247,13 @@ namespace SpellWork.Spell
 
         private const string Separator = "=================================================";
 
-        public SpellInfo(SpellNameEntry spellName, SpellEntry spellEntry)
+        public SpellInfo(string spellName, SpellEntry spellEntry)
         {
-            Spell = spellEntry;
-            SpellName = spellName;
+            ID = (int)spellEntry.ID;
+            Name = spellName;
+            NameSubtext = spellEntry.NameSubtext ?? string.Empty;
+            Description = spellEntry.Description ?? string.Empty;
+            Tooltip = spellEntry.AuraDescription ?? string.Empty;
         }
 
         public void Write(IRichTextBox rtb)
@@ -281,7 +276,7 @@ namespace SpellWork.Spell
             }
 
             rtb.AppendFormatLineIfNotNull("Modal Next Spell: {0}", ModalNextSpell);
-            if (!string.IsNullOrEmpty(Spell.Description) && !string.IsNullOrEmpty(Spell.AuraDescription) && ModalNextSpell != 0)
+            if (!string.IsNullOrEmpty(Description) && !string.IsNullOrEmpty(Tooltip) && ModalNextSpell != 0)
                 rtb.AppendFormatLine(Separator);
 
             #region Triggered by ...
@@ -314,11 +309,11 @@ namespace SpellWork.Spell
             foreach (var eff in
                     from s in DBC.DBC.SpellInfoStore.Values
                     where s.SpellFamilyName == SpellFamilyName
-                    from eff in s.Effects
-                    where eff != null && ((eff.EffectSpellClassMask[0] & SpellClassMask[0]) != 0 ||
-                          (eff.EffectSpellClassMask[1] & SpellClassMask[1]) != 0 ||
-                          (eff.EffectSpellClassMask[2] & SpellClassMask[2]) != 0 ||
-                          (eff.EffectSpellClassMask[3] & SpellClassMask[3]) != 0)
+                    from eff in s.SpellEffectInfoStore
+                    where eff != null && ((eff.SpellEffect.EffectSpellClassMask[0] & SpellClassMask[0]) != 0 ||
+                          (eff.SpellEffect.EffectSpellClassMask[1] & SpellClassMask[1]) != 0 ||
+                          (eff.SpellEffect.EffectSpellClassMask[2] & SpellClassMask[2]) != 0 ||
+                          (eff.SpellEffect.EffectSpellClassMask[3] & SpellClassMask[3]) != 0)
                     select eff)
             {
                 rtb.SetStyle(Color.Blue, FontStyle.Bold);
@@ -525,7 +520,10 @@ namespace SpellWork.Spell
             }
 
             if (DurationEntry != null)
-                rtb.AppendFormatLine("Duration {0}, {1}", Duration, MaxDuration);
+                rtb.AppendFormatLine("Duration {0}, {1}", DurationEntry.Duration, DurationEntry.MaxDuration);
+
+            if (PvpDurationEntry != null)
+                rtb.AppendFormatLine("PvP Duration {0}, {1}", PvpDurationEntry.Duration, PvpDurationEntry.MaxDuration);
 
             foreach (var spellPower in Powers.OrderBy(p => p.OrderIndex))
             {
@@ -644,8 +642,8 @@ namespace SpellWork.Spell
                 rtb.AppendFormatLine("Chance = {0}, charges - {1}", ProcChance, ProcCharges);
 
             rtb.AppendLine(Separator);
-            foreach (var effect in Effects)
-                AppendEffectInfo(rtb, effect);
+            foreach (var effect in SpellEffectInfoStore)
+                AppendEffectInfo(rtb, effect.SpellEffect);
 
             AppendItemInfo(rtb);
 
@@ -833,8 +831,8 @@ namespace SpellWork.Spell
                 }
             }
 
-            AppendRadius(rtb, "", effect.EffectRadiusIndex[0]);
-            AppendRadius(rtb, "Max ", effect.EffectRadiusIndex[1]);
+            AppendRadius(rtb, "TargetA", effect.EffectRadiusIndex[0]);
+            AppendRadius(rtb, "TargetB", effect.EffectRadiusIndex[1]);
 
             // append trigger spell
             var trigger = effect.EffectTriggerSpell;
@@ -844,9 +842,9 @@ namespace SpellWork.Spell
                 {
                     var triggerSpell = DBC.DBC.SpellInfoStore[(int)trigger];
                     rtb.SetStyle(Color.Blue, FontStyle.Bold);
-                    rtb.AppendFormatLine("   Trigger spell ({0}) {1}. Chance = {2}", trigger, triggerSpell.SpellName.Name, ProcChance);
-                    rtb.AppendFormatLineIfNotNull("   Description: {0}", triggerSpell.Spell.Description);
-                    rtb.AppendFormatLineIfNotNull("   ToolTip: {0}", triggerSpell.Spell.AuraDescription);
+                    rtb.AppendFormatLine("   Trigger spell ({0}) {1}. Chance = {2}", trigger, triggerSpell.Name, ProcChance);
+                    rtb.AppendFormatLineIfNotNull("   Description: {0}", triggerSpell.Description);
+                    rtb.AppendFormatLineIfNotNull("   ToolTip: {0}", triggerSpell.Tooltip);
                     rtb.SetDefaultStyle();
                     if (triggerSpell.ProcFlags != 0 || triggerSpell.ProcFlagsEx != 0)
                     {
@@ -957,12 +955,7 @@ namespace SpellWork.Spell
 
         private void AppendItemInfo(IRichTextBox rtb)
         {
-            var items = (from effect in DBC.DBC.ItemEffect.Values
-                          where effect.SpellID == ID
-                          join ixie in DBC.DBC.ItemXItemEffect.Values on (int)effect.ID equals ixie.ItemEffectID
-                          select ixie)
-                         .ToArray();
-            if (!items.Any())
+            if (!ItemEffects.Any())
                 return;
 
             rtb.AppendLine(Separator);
@@ -970,22 +963,20 @@ namespace SpellWork.Spell
             rtb.AppendLine("Items using this spell:");
             rtb.SetDefaultStyle();
 
-            foreach (var item in items)
+            foreach (var itemEffect in ItemEffects)
             {
-                if (!DBC.DBC.ItemSparse.ContainsKey(item.ItemID))
+                if (itemEffect.Item == null)
                 {
-                    rtb.AppendFormatLine($@"   Non-existing Item-sparse.db2 entry { item.ItemID }");
+                    rtb.AppendFormatLine($@"   Non-existing Item-sparse.db2 entry {itemEffect.ItemID}");
                     continue;
                 }
 
-                var itemTemplate = DBC.DBC.ItemSparse[item.ItemID];
+                var name = itemEffect.Item.Display;
+                var description = itemEffect.Item.Description;
 
-                var name = itemTemplate.Display;
-                var description = itemTemplate.Description;
+                description = string.IsNullOrEmpty(description) ? string.Empty : $" - \"{description}\"";
 
-                description = string.IsNullOrEmpty(description) ? string.Empty : $" - \"{ description }\"";
-
-                rtb.AppendFormatLine($@"   { item.ItemID }: { name } { description }");
+                rtb.AppendFormatLine($@"   {itemEffect.Item.ID}: {name} {description}");
             }
         }
 
@@ -1038,22 +1029,22 @@ namespace SpellWork.Spell
 
         public bool HasEffect(SpellEffects effect)
         {
-            return Effects.Any(eff => eff != null && eff.Effect == (uint)effect);
+            return SpellEffectInfoStore.Any(eff => eff.SpellEffect != null && eff.Effect == (uint)effect);
         }
 
         public bool HasAura(AuraType aura)
         {
-            return Effects.Any(eff => eff != null && eff.EffectAura == (uint)aura);
+            return SpellEffectInfoStore.Any(eff => eff.SpellEffect != null && eff.EffectAura == (uint)aura);
         }
 
         public bool HasTargetA(Targets target)
         {
-            return Effects.Any(eff => eff != null && eff.ImplicitTarget[0] == (uint)target);
+            return SpellEffectInfoStore.Any(eff => eff.SpellEffect != null && eff.SpellEffect.ImplicitTarget[0] == (uint)target);
         }
 
         public bool HasTargetB(Targets target)
         {
-            return Effects.Any(eff => eff != null && eff.ImplicitTarget[1] == (uint)target);
+            return SpellEffectInfoStore.Any(eff => eff.SpellEffect != null && eff.SpellEffect.ImplicitTarget[1] == (uint)target);
         }
 
         private uint? GetSpellLabelAffectingOtherSpells(SpellEffectEntry effect)
@@ -1107,8 +1098,8 @@ namespace SpellWork.Spell
         public short TargetA => SpellEffect.ImplicitTarget[0];
         public short TargetB => SpellEffect.ImplicitTarget[1];
 
-        public uint EffectRadiusIndex => SpellEffect.EffectRadiusIndex[0];
-        public uint EffectRadiusMaxIndex => SpellEffect.EffectRadiusIndex[1];
+        public uint TargetARadius => SpellEffect.EffectRadiusIndex[0];
+        public uint TargetBRadius => SpellEffect.EffectRadiusIndex[1];
 
         public int EffectChainTargets => SpellEffect.EffectChainTargets;
         public int EffectItemType => SpellEffect.EffectItemType;

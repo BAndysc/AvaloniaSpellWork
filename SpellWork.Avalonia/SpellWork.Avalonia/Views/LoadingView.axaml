@@ -7,7 +7,9 @@
              x:Class="SpellWork.Avalonia.Views.LoadingView"
              x:DataType="viewModels:LoadingViewModel">
   <ScrollViewer FontSize="10">
-    <ItemsControl ItemsSource="{CompiledBinding Tasks}">
+    <ItemsControl ItemsSource="{CompiledBinding Tasks}"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Center">
       <ItemsControl.ItemTemplate>
         <DataTemplate>
           <Grid ColumnDefinitions="150,*">

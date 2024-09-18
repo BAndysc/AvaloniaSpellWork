@@ -8,7 +8,8 @@ public class Loader
     {
         try
         {
-            await DBC.DBC.Load(progress);
+            var subtask = progress.CreateSubTask("Loading");
+            await DBC.DBC.Load(state => subtask.Report($"{state}%"));
         }
         catch (Exception e)
         {
