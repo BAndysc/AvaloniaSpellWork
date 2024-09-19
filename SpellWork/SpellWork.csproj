@@ -19,6 +19,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DBCD\DBCD\DBCD.csproj" />
-    <ProjectReference Include="..\DBCD\DBFileReaderLib\DBFileReaderLib.csproj" />
+    <ProjectReference Include="..\DBCD\DBCD.IO\DBCD.IO.csproj" />
   </ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-using DBFileReaderLib;
+using DBCD.IO;
 using SpellWork.Database;
 using SpellWork.DBC.Structures;
 using SpellWork.Extensions;
