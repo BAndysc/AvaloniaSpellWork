@@ -59,7 +59,6 @@ namespace SpellWork.DBC
         }
 
         public static async Task Load(Action<int> progressCallback)
-        //public static async Task Load(ITaskProgress progress)
         {
             var progressHandler = new ProgressHandler(progressCallback);
 

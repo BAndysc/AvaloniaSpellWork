@@ -21,12 +21,6 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: apply patch
-        run: |
-          cd DBCD
-          git apply ../perf.patch
-          cd ..
-
       - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
         uses: actions/setup-dotnet@v3
         with:
